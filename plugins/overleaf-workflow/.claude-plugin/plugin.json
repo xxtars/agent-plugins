@@ -1,0 +1,7 @@
+{
+  "name": "overleaf-workflow",
+  "description": "Overleaf paper writing workflow: sync via git, academic writing conventions, reference management. For researchers writing papers with Overleaf + local Claude Code editing.",
+  "author": {
+    "name": "xxtars"
+  }
+}
