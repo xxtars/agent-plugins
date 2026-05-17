@@ -1,0 +1,7 @@
+{
+  "name": "web-paper-to-pdf",
+  "description": "Convert Distill-style web papers (transformer-circuits.pub, distill.pub, alignment.anthropic.com) into a clean academic-style PDF using LaTeX with the public NeurIPS 2024 template.",
+  "author": {
+    "name": "xxtars"
+  }
+}
