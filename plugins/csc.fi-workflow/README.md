@@ -1,175 +1,48 @@
 # csc.fi-workflow
 
-A [Claude Code](https://claude.ai/code) plugin for ML researchers working on [CSC](https://www.csc.fi/) (Finland's IT Center for Science) SLURM clusters (Mahti, Puhti).
+CSC Roihu workflow for ML experiments: configure access, sync code, submit jobs, monitor status, and record verified results. The skills use the host client's tools and the file conventions supplied by `research-workflow`.
 
-Provides a structured workflow for syncing code, monitoring jobs, and recording experiment results on CSC clusters — so you can focus on research instead of cluster logistics.
+## Roihu migration
 
-## Companion plugins
+Roihu is the default for new work. Mahti/Puhti settings remain relevant only to migration and historical records. Accounts, datasets, paths, containers, and quotas must be checked on the new system; replacing a hostname is not a complete migration.
 
-File conventions for `experiments/PLAN.md`, `LOG.md`, `weekly/`, and `PITFALLS.md` are defined in **`research-workflow`** (same marketplace). This plugin writes into those files but doesn't own them.
-
-- To scaffold a new project: `/research-workflow:init` first, then `/csc.fi-workflow:configure`
-- To reconcile results with research plan: `/research-workflow:iterate`
+GPU nodes use ARM CPUs and GH200 GPUs, while CPU nodes are x86. Match the runtime and login endpoint to the intended workload. Keep CSC's local `$TMPDIR` and renew SSH certificates through the supported workflow. Current details and official links are in [Roihu requirements](rules/roihu.md), checked 2026-10-07.
 
 ## Skills
 
-| Skill | Command | Description |
-|-------|---------|-------------|
-| Configure | `/csc.fi-workflow:configure` | Set up cluster connection (SSH, account, paths) |
-| Sync | `/csc.fi-workflow:sync` | Push code to cluster: `commit → push → ssh pull` |
-| Check Jobs | `/csc.fi-workflow:check-jobs` | Query SLURM queue and recent job status (one-shot) |
-| Watch | `/csc.fi-workflow:watch` | Monitor a SLURM job until completion (background polling, dependency chain, or periodic cron) |
-| Submit | `/csc.fi-workflow:submit` | Submit SLURM job and auto-record in experiment log |
-| Update Log | `/csc.fi-workflow:update-log` | Record job results into structured experiment logs |
+| Skill | Purpose |
+|-------|---------|
+| [configure](skills/configure/SKILL.md) | Configure or diagnose SSH, account, paths, architecture, and runtime |
+| [sync](skills/sync/SKILL.md) | Transfer scoped code changes and verify the actual remote revision |
+| [submit](skills/submit/SKILL.md) | Submit once within the approved budget and save run/job provenance |
+| [check-jobs](skills/check-jobs/SKILL.md) | Query project jobs and distinguish failure, completion, and unknown state |
+| [watch](skills/watch/SKILL.md) | Schedule scoped checks and notify on meaningful changes |
+| [update-log](skills/update-log/SKILL.md) | Reconcile job history and record results verified from output files |
 
-## Rules (always-on)
+Enable `csc.fi-workflow` from this marketplace in the supported client. Invoke a skill by its plugin name where available, or ask for the corresponding task in plain language. Recurring monitoring requires a scheduler supported by the client; Codex uses thread heartbeats.
 
-Rules are automatically loaded into every conversation. They guide Claude's behavior when writing SLURM-related scripts.
+## Project settings
 
-- **SLURM Shell Conventions** (`slurm-shell.md`) — Never `set -e` in SLURM scripts; use Apptainer containers (not conda); three-layer script structure (`submit_*.sh` → `sbatch_*.sh` → `run/*.sh`); build SIF on compute nodes with `/dev/shm` as TMPDIR
+Keep one `## Cluster` block in the project's `CLAUDE.md`; read project `AGENTS.md` as well. Required operational settings are the SSH host, remote project path, SLURM user/account, and a project job-name prefix or explicit job IDs. Record architecture, runtime/data paths, and the timezone when needed. Configure can prepare a local draft while Roihu is unavailable, with unresolved values clearly marked.
 
-For experiment file conventions (LOG, weekly, PITFALLS, PLAN), see `research-workflow/rules/research-files.md`.
+Existing `Usage: ssh ...` settings are supported. Do not duplicate the Cluster block in another file or assume an old Mahti account/path is valid on Roihu. Read [shell conventions](rules/slurm-shell.md) before changing job scripts. Skills link these references explicitly; do not rely on a client automatically loading every rule file.
 
-## Install
+## Normal workflow
 
-```bash
-claude plugin install xxtars/claude-code-plugins/csc.fi-workflow
-```
+1. Configure and validate access, data, and a compatible runtime.
+2. Sync code and verify the remote revision; isolate queued/running jobs from later checkout changes.
+3. Submit an authorized run with a unique ID, manifest, and fixed resource budget.
+4. Check status, or schedule monitoring if requested.
+5. Reconcile accounting, verify outputs, and update the experiment logs.
 
-## Quick Start
+The workflow scopes queries to this project's jobs. An SSH failure is an unavailable observation; a job disappearing from the queue needs accounting confirmation. Scheduler success and verified research results are recorded separately.
 
-```bash
-# 1. Scaffold research files (from research-workflow plugin)
-/research-workflow:init
+Monitoring defaults to one-hour checks of a fixed target set and stops when all targets are confirmed terminal. Elapsed-time changes alone do not produce notifications. External notification channels require an explicit user request and destination.
 
-# 2. Configure your cluster connection
-/csc.fi-workflow:configure
+## Research files
 
-# 3. Daily workflow
-/sync                    # push code to cluster
-/check-jobs              # see what's running
-/update-log              # record results
-```
-
-## Requirements
-
-- SSH access to a CSC cluster (Mahti or Puhti, with key-based auth recommended — passphrase-free or via `ssh-agent`)
-- Git repository for your project (synced via GitHub/GitLab)
-- Apptainer (pre-installed on CSC clusters)
-
-## Skill Details
-
-### `/csc.fi-workflow:configure`
-
-One-time setup per project. Collects SSH host, SLURM user/account, and remote project path, then writes a `## Cluster` section in CLAUDE.md. No separate config files — CLAUDE.md is the single source of truth.
-
-**What it does:**
-1. **Required**: Collects `ssh_host`, `slurm_user`, `slurm_account`, `remote_path`
-2. **Validates SSH**: Runs `whoami && hostname` on the cluster to confirm connectivity
-3. **Validates remote path**: Checks the path exists and is writable (`test -d && test -w`) — catches typos before they cause silent failures later
-4. **Optional**: CSC-specific paths (scratch, datasets, SIF containers, HF cache, APPTAINER_TMPDIR), GitHub SSH aliases (if local and cluster use different configs), vLLM setup
-5. Writes everything to CLAUDE.md and suggests `/research-workflow:init` if experiment files don't exist yet
-
-### `/csc.fi-workflow:sync`
-
-Pushes local code to the cluster via GitHub:
-
-```
-local commit -> git push -> ssh pull on cluster
-```
-
-**Safety checks:**
-- Warns about unstaged/untracked files before committing
-- **Verifies remote path exists** on the cluster before pulling — if the path is wrong, reports the error immediately instead of failing silently
-- Never force-adds ignored files; never force-pushes
-- Does NOT auto-submit SLURM jobs — that's your choice after sync
-
-### `/csc.fi-workflow:check-jobs`
-
-Queries `squeue` (active) and `sacct` (recent 3 days) in a single SSH call.
-
-**Key features:**
-- **Failed job diagnosis**: For FAILED/TIMEOUT/OUT_OF_MEMORY jobs, automatically runs `scontrol show job` to get the stderr path, then reads the last 30 lines of the error log. Summarizes the failure reason and suggests adding to PITFALLS.md if it's a new type of failure
-- **Project-level filtering**: Reads job names from your weekly log and LOG.md to identify which jobs belong to the current project. Jobs from other projects are shown separately so you can focus on what matters
-- Filters out `.batch` and `.extern` sub-jobs from sacct output
-- All timestamps use the cluster's timezone (via remote `date` command, not local)
-
-### `/csc.fi-workflow:watch`
-
-Continuous variant of `check-jobs`: monitor one or more SLURM jobs until they reach a terminal state, then optionally chain to `update-log`.
-
-**Four modes** with explicit selection rules:
-- **A — Foreground wait** (<15 min): block the current Bash turn with a local `until` loop, short-poll `sacct` until done.
-- **B — Background polling** (15 min – 3 h): same loop but `run_in_background: true`; Claude resumes via `<task-notification>` on exit.
-- **C — SLURM dependency** (>3 h with known follow-up): `sbatch --dependency=afterok:<jobid> <follow_up>`. Cluster-side, survives laptop sleep / CC restart.
-- **D — `CronCreate` periodic**: re-invoke Claude at fixed intervals across many jobs.
-
-**Key correctness rule**: the polling loop must run *locally*, with each iteration opening a fresh short SSH for `sacct`. The wrong form (`ssh host "until ...; do sleep N; done"`) puts the loop on the login node, where SSH drops become false-positive failures and the loop becomes an orphan process. The skill documents this pitfall.
-
-The skill picks the poll interval from a small table that scales with `--time` (15 s for <15 min, up to 30 min for >12 h).
-
-### `/csc.fi-workflow:submit`
-
-Submits a SLURM job and **automatically records** it in the experiment log. Replaces the manual workflow of "sbatch → then remember to update the log".
-
-**What it does:**
-1. Runs `sbatch` on the cluster and captures the job ID
-2. Gets the current git commit hash
-3. Adds a row to the weekly log's Job History table (job name, ID, partition, submitted date, commit hash, status=PENDING)
-4. Updates the corresponding stage in LOG.md if applicable
-5. Reports a clean summary
-
-Use this instead of raw `sbatch` whenever you want automatic tracking.
-
-### `/csc.fi-workflow:update-log`
-
-Records job results into the weekly log and LOG.md.
-
-**Key features:**
-- **Auto-creates weekly log**: Calculates the Monday of the current week and creates the file from the template if it doesn't exist. No more getting the date wrong
-- **Smart diff**: Parses existing Job History in the weekly log, queries `sacct`, and shows a diff summary ("3 new jobs, 2 status updates, 1 newly failed") before writing — so you review before changes are made
-- **Verified results only**: Never guesses or copies numbers from memory. Must read actual output files on the cluster, tagged with source path and date
-- **Three-section weekly log**: Job History (table), Verified Results (numbers from cluster), Notes (observations/decisions, no raw numbers)
-- LOG.md gets milestone status updates only — no intermediate numbers that go stale
-
-## Experiment File Conventions
-
-File responsibilities (PLAN / LOG / weekly / PITFALLS) and the weekly log three-section format (Job History / Verified Results / Notes) are defined by `research-workflow`. See [`research-workflow/rules/research-files.md`](../research-workflow/rules/research-files.md).
-
-The `Commit` column in the weekly Job History table records the git commit hash that was running, so any result is reproducible later.
-
-## SLURM Script Structure
-
-The plugin encourages a three-layer separation:
-
-```
-submit_experiment.sh     <- Loop/batch submission (optional)
-  -> sbatch_experiment.sh   <- SLURM #SBATCH directives + apptainer exec
-       -> run/experiment.sh    <- Business logic inside the container
-```
-
-This keeps resource config separate from execution logic.
-
-## Configuration
-
-After running `/configure`, your CLAUDE.md will contain:
-
-```markdown
-## Cluster
-- Remote path: `/scratch/project_xxx/username/project-name`
-- Usage: `ssh cluster.example.com "cd /scratch/.../project-name && <command>"`
-- SLURM user: `username`
-- SLURM account: `project_id`
-- All commands run from project root
-
-### CSC Paths
-- Scratch: `/scratch/project_xxx/username/`
-- Datasets: `/scratch/project_xxx/username/DATASET/`
-- SIF container directory: `/scratch/.../containers/`
-- HF cache: `/scratch/.../.cache/huggingface`
-- APPTAINER_TMPDIR: `/scratch/.../.cache/apptainer_tmp`
-```
+Use `research-workflow` to define `experiments/PLAN.md`, `LOG.md`, `weekly/`, and `PITFALLS.md`. This plugin updates operational records; it does not silently change the research plan. Job entries stay in their submission week, even when they finish later. Historical cluster names and results are preserved.
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).

@@ -1,94 +1,52 @@
 ---
 name: configure
-description: Configure SLURM cluster connection for this project. Use when user first installs the plugin, says "configure cluster", "configure slurm", or needs to update cluster settings. Do NOT use for Overleaf — that's /overleaf-workflow:configure.
+description: Configure or diagnose this project's CSC Roihu or SLURM connection, SSH certificate, account, paths, and runtime architecture. Use for cluster setup, migration, or connection failures. Do NOT use for Overleaf.
 ---
 
 # Configure SLURM Workflow
 
-Set up the Cluster section in the project's `CLAUDE.md` so that other skills (`/csc.fi-workflow:sync`, `/csc.fi-workflow:check-jobs`, `/csc.fi-workflow:update-log`) can read the connection info.
+Read [Roihu requirements](../../rules/roihu.md), project `AGENTS.md`, and the existing `## Cluster` section in `CLAUDE.md`. Preserve valid settings and reuse session facts. Apply authorized updates without asking for the same permission again.
 
-## Steps
+## Establish the configuration
 
-### Phase 1: Required (must collect)
-
-1. Check if `CLAUDE.md` already has a `## Cluster` section. If so, show current settings and ask if the user wants to update or skip.
-
-2. Collect:
-   - **ssh_host**: SSH host alias or hostname (e.g., `mahti.csc.fi` or an alias from `~/.ssh/config`)
-   - **slurm_user**: SLURM username (for `squeue -u`)
-   - **slurm_account**: SLURM account/project (for `#SBATCH --account`)
-   - **remote_path**: Project path on the cluster (e.g., `/scratch/project_xxx/username/project-name`)
-   - **job_name_prefix**: Job name prefix used by this project's sbatch scripts (e.g., `ep-` for EmotionProbe, `nlgrpo-` for an RL run). Used by `/csc.fi-workflow:watch` to scope queue polling to this project when multiple projects share the same `slurm_user`. Suggest a default derived from the project directory basename (lowercase, short — `EmotionProbe` → `ep-`); confirm or override with the user. If the project genuinely has no naming convention, leave empty — `/csc.fi-workflow:watch` will then require an explicit `JOBIDS=` list.
-
-3. Validate SSH connection: `ssh <ssh_host> "whoami && hostname"`. If it fails, help debug.
-
-4. Validate remote path is accessible and writable:
+1. Collect only values needed for the requested action:
+   - SSH alias/host, preserving spelling; GPU work normally uses `roihu-gpu.csc.fi`.
+   - SLURM user and account, verified for Roihu rather than copied from a retired cluster.
+   - Remote project path and, when applicable, separate immutable run directory.
+   - Literal project job-name prefix, or explicit job IDs for monitoring.
+   - Target architecture and the runtime, data, and resource settings needed for this workload.
+2. Reuse existing scripts and verified configuration before asking questions. A local draft may mark missing values `unconfirmed`; remote operations must not interpolate them.
+3. Validate SSH through a bounded, noninteractive read-only command:
    ```bash
-   ssh <ssh_host> "test -d <remote_path> && test -w <remote_path> && echo 'OK' || echo 'ERROR: path missing or not writable'"
+   ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 <ssh_host> 'whoami && hostname && uname -m'
    ```
-   If it fails, help the user correct the path before proceeding.
+   Retain stderr and the exit status. Preserve host-key verification. If host trust needs user action, report that instead of bypassing it.
+4. On authentication failure, inspect the selected host's effective `ssh -G` configuration, certificate validity with `ssh-keygen -L -f <certificate_path>`, and public-key fingerprint if needed. Do not dump private keys or unrelated SSH configuration. Check [CSC SSH guidance](https://docs.csc.fi/computing/connecting/ssh-keys/) and [service notices](https://research.csc.fi/service-break/) before recommending renewal. Distinguish expiry, rejection despite a valid certificate, network/DNS, sandbox restrictions, and login-shell errors. Renewal may require the user's browser/MFA interaction.
+5. Validate the known remote path's existence and write access, account membership, data availability, and target architecture. Use read-only checks first. A maintenance outage leaves these checks pending; it does not justify inventing a path or declaring migration complete. Do not run ML workloads on login nodes.
 
-5. Write the `## Cluster` section in `CLAUDE.md`:
-   ```markdown
-   ## Cluster
-   - Remote path: `<remote_path>`
-   - Usage: `ssh <ssh_host> "cd <remote_path> && <command>"`
-   - SLURM user: `<slurm_user>`
-   - SLURM account: `<slurm_account>`
-   - Job name prefix: `<job_name_prefix>` (used by `/csc.fi-workflow:watch` to scope queue polling to this project)
-   - All commands run from project root
-   ```
-   Omit the `Job name prefix` line entirely if the user left it empty.
+## Save one configuration block
 
-### Phase 2: Optional (ask "Do you want to configure X?")
+Update `CLAUDE.md` in place. Do not duplicate connection settings in `AGENTS.md` or a second config file. The example below is a schema, not an executable command:
 
-**CSC Paths** — ask if the user works with containers or HuggingFace models:
-- Scratch base (e.g., `/scratch/project_xxx/username/`)
-- Datasets path
-- SIF container directory
-- SIF build template path
-- HuggingFace cache path
-- APPTAINER_TMPDIR
-
-If yes, append under Cluster:
 ```markdown
-### CSC Paths
-- Scratch: `<scratch_base>`
-- Datasets: `<datasets_path>`
-- SIF container directory: `<container_dir>`
-- SIF build template: `<build_template>`
-- HF cache: `<hf_cache>`
-- APPTAINER_TMPDIR: `<tmpdir>`
+## Cluster
+- SSH host: `<configured_alias>`
+- Remote path: `<verified_project_path>`
+- SLURM user: `<user>`
+- SLURM account: `<verified_account>`
+- Job name prefix: `<literal_prefix>`
+- Target: `Roihu GPU / aarch64` or `Roihu CPU / x86_64`
+- Timezone: `Europe/Helsinki`
+- Remote validation: `<date and outcome, or pending reason>`
+- All project commands run from the configured remote project root
 ```
 
-**GitHub SSH** — ask if local and cluster use different GitHub SSH configs:
-- Local SSH host alias (e.g., `github-xxtars`)
-- Cluster SSH host (default: `github.com`)
+Omit optional unknown entries, or explicitly label them unresolved. Existing `Usage: ssh ...` configuration remains supported; avoid contradictory duplicate values.
 
-If yes, append:
-```markdown
-### GitHub SSH
-- Local: host alias `<local_alias>` → `git@<local_alias>:username/<repo>.git`
-- CSC: `<cluster_host>` → `git@<cluster_host>:username/<repo>.git`
-```
+For container/model work, add verified dataset, container, persistent cache, output, and run-snapshot paths under `### CSC Paths`. Record image architecture and version/digest. Resolve `$TMPDIR` at runtime, not as a fixed per-project path. If local and cluster GitHub SSH aliases differ, preserve the existing `### GitHub SSH` entries and verify their repository identity.
 
-**vLLM** — ask if the project uses vLLM on the cluster:
+Only add vLLM deployment settings when relevant to this project. Readiness checks need a deadline and a server-liveness check; a failed probe must not wait forever.
 
-If yes, append:
-```markdown
-## vLLM (CSC)
-- deploy script starts vLLM server inside container; run scripts wait for readiness then call API
-- Health check: `curl -s http://localhost:8000/v1/models`
-```
+## Finish
 
-### Phase 3: Finish
-
-6. Show the final CLAUDE.md for confirmation.
-7. Suggest running `/csc.fi-workflow:init` to scaffold experiment files if `experiments/` doesn't exist.
-
-## Notes
-- Do NOT create separate config files — CLAUDE.md IS the config
-- If CLAUDE.md already has sections, update rather than duplicate
-- Skip optional phases if the user declines — they can always re-run `/csc.fi-workflow:configure` later
-- Collect all info by asking questions BEFORE writing, then write once
-- Do NOT configure Overleaf here — use `/overleaf-workflow:configure` for that
+Report which settings were saved and which checks remain unresolved. Use `/research-workflow:init` only if research scaffolding is requested and missing. There is no `/csc.fi-workflow:init` skill. Configuration or diagnosis alone does not authorize submitting a job, migrating data, or starting recurring monitoring.

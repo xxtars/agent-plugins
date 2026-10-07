@@ -10,8 +10,8 @@ If a pitfall also invalidates a claim in [PLAN.md](PLAN.md) Story or Design, add
 
 ## Descriptive title of the pitfall
 - **Symptom**: What you observed (error message, unexpected behavior)
-- **Root cause**: Why it happened
-- **Fix**: How you resolved it
+- **Root cause**: Confirmed cause, or explicitly labelled hypothesis
+- **Fix**: Action and verification, or pending next step
 - **Date**: YYYY-MM-DD
 
 -->

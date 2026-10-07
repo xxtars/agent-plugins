@@ -30,18 +30,19 @@ Any of these events should trigger adding an L4 entry (and possibly editing L1/L
 - A **new experiment** is added in response to reviewer-like feedback or a surprising result
 - The **metric** changes — Design must reflect the new metric everywhere, L4 records why
 - A **scope shrink or expansion** (drop a dataset, add one, switch target)
+- An explicit **user decision** or a **checked source correction** changes the plan before experiments exist; label this separately from experimental evidence
 
 ## Principles
 
 1. **Never edit L1 or L2 silently.** If Story or Design changes, an L4 entry is mandatory. The edit without the log is a debt.
-2. **Link to evidence.** Every L4 Trigger field should point to a weekly log date, a PITFALLS entry, or a verified result location. "We felt like it" is not an acceptable trigger.
+2. **Link to evidence.** Cite a specific weekly section, PITFALLS entry, verified output, checked primary source, or dated user instruction. User intent establishes scope, not experimental success.
 3. **Paper lags results, not the other way around.** Update PLAN.md first. Paper (abstract / experiments.tex) updates follow the next time you sync with Overleaf.
 4. **Keep the loop short.** If a week's results don't feed back into PLAN.md, either the results are trivial (fine) or you're accumulating debt (not fine).
 5. **Don't retcon Story.** If the old Story turned out to be wrong, don't rewrite it in place — keep the L4 record of the change. This matters when a reviewer asks "why did you claim X?"
 
 ## What to do when running `/research-workflow:iterate`
 
-The skill reads LOG + latest weekly + PITFALLS, compares against current PLAN, and proposes L1/L2 edits + L4 entries. **It does not write without user approval.** See `skills/iterate/SKILL.md`.
+The skill reads LOG + latest weekly + PITFALLS and compares against PLAN. Apply explicitly requested edits within the user's authorization; obtain approval for substantive proposed direction changes that were not requested. Always append the corresponding L4 entry. See [the iterate skill](../skills/iterate/SKILL.md).
 
 ## What L4 is NOT
 

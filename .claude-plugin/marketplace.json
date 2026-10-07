@@ -14,7 +14,7 @@
     },
     {
       "name": "csc.fi-workflow",
-      "description": "CSC (Finland) SLURM cluster workflow: sync code, check jobs, submit jobs, record results. Writes into files defined by research-workflow.",
+      "description": "CSC Roihu SLURM workflow: architecture-aware configuration, code sync, job submission/monitoring, and verified experiment logs using research-workflow conventions.",
       "source": "./plugins/csc.fi-workflow",
       "category": "development"
     },

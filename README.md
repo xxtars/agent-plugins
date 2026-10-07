@@ -7,7 +7,7 @@ Personal [Claude Code](https://claude.ai/code) plugin marketplace for ML researc
 | Plugin | Description |
 |--------|-------------|
 | [research-workflow](plugins/research-workflow/) | Four-layer PLAN (Story / Design / Execution / Iteration), LOG/weekly/PITFALLS conventions, iterate skill |
-| [csc.fi-workflow](plugins/csc.fi-workflow/) | SLURM cluster workflow for CSC (Mahti/Puhti): sync code, submit jobs, check status, record results |
+| [csc.fi-workflow](plugins/csc.fi-workflow/) | CSC Roihu workflow: architecture-aware setup, code sync, job submission/monitoring, and verified experiment logs |
 | [overleaf-workflow](plugins/overleaf-workflow/) | Overleaf paper writing: git sync, academic writing conventions, reference management |
 | [memory-workflow](plugins/memory-workflow/) | Session wrap-up: categorize decisions/dead-ends/open-items and persist to project files, user-gated |
 | [web-paper-to-pdf](plugins/web-paper-to-pdf/) | Convert Distill-style web papers (transformer-circuits.pub, distill.pub) into clean LaTeX-typeset PDFs using the public NeurIPS 2024 template. Output is labelled as **unofficial archival rendering**. |

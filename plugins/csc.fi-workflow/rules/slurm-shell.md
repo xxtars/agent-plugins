@@ -1,31 +1,39 @@
 # SLURM Shell Script Conventions
 
-Rules for writing shell scripts that run on SLURM clusters.
+Read [Roihu requirements](roihu.md) when targeting CSC. These conventions apply to new or revised scripts; preserve project-specific behavior unless a change is needed.
 
-## Shell options
-- **Never use `set -euo pipefail`** or any `set -e`/`set -u`/`set -o pipefail` in SLURM scripts. Reason: SLURM job steps, health checks, and cleanup traps interact badly with `set -e` — a non-zero exit from an expected failure (e.g., `curl` during health check, `kill` on an already-dead process) will terminate the entire job.
+## Exit status and cleanup
 
-## Containers (Apptainer/Singularity)
-- Use Apptainer/Singularity containers, not conda/virtualenv on shared clusters
-- sbatch scripts launch the container; run scripts execute inside it:
+- Choose shell options deliberately. Strict mode is allowed, but guard expected failures such as a readiness probe or cleanup of an already exited process. Without strict mode, explicitly check required setup and workload commands.
+- Propagate workload failure to the batch script's final exit status. A successful final `echo` or cleanup must not turn failed training into a SLURM `COMPLETED` job.
+- Use `exec srun ...` when the workload is the final command and no cleanup is needed. Otherwise capture status explicitly, including when strict mode is enabled:
   ```bash
-  srun apptainer exec --nv --bind="/scratch/" --home /users/$USER $SIF bash run_script.sh
+  if srun python train.py; then
+      workload_status=0
+  else
+      workload_status=$?
+  fi
+  # Perform project-specific cleanup; preserve workload_status on failure.
+  exit "$workload_status"
   ```
-- **Build SIF images on compute nodes**, not login nodes (login nodes are resource-constrained):
-  ```bash
-  sbatch build_sif.sh docker://<image>:<tag> <name>.sif
-  ```
-- Use `/dev/shm` (RAM-backed) as `TMPDIR` for builds — default `/tmp` often runs out of space
+- Track and `wait` for background process IDs. Readiness checks need a deadline, a process-liveness check, and a useful failure message.
+- Handle cancellation and termination without masking failure. Cleanup may stop only processes belonging to this run. Save required outputs before temporary storage is removed.
+- Quote paths and variables. Keep credentials out of scripts, command logs, Git, and experiment notes.
 
-## Git on cluster
-- Sync flow: `local commit → git push → ssh to cluster → git pull → sbatch`
-- Respect `.gitignore` — never use `git add -f` to force-add ignored files
-- When unsure if a file should be committed, ask first
+## Runtime and storage
 
-## SLURM script structure (recommended)
-Three-layer separation for maintainability:
-1. **`submit_*.sh`** — Loop/batch submission logic (optional)
-2. **`sbatch_*.sh`** — SLURM resource directives (`#SBATCH`) + `apptainer exec`
-3. **`run/*.sh`** — Actual execution logic inside the container
+- Prefer the project's tested container or CSC-supported environment. Apptainer is a useful default for reproducibility; a compatible module or virtual environment is also valid.
+- Match the image, binaries, Python wheels, and extensions to the target CPU architecture. Validate GPU passthrough and framework compatibility in a short compute job.
+- Use `apptainer exec --nv` when the chosen GPU image requires NVIDIA passthrough. Bind only required data, output, cache, and temporary paths; do not assume a home directory layout.
+- Keep CSC's provided `$TMPDIR` on local disk. Resolve it at runtime; do not replace it with a fixed `/dev/shm` or Lustre path. Put persistent model caches and results in verified project storage.
+- Build containers on a compatible architecture. CSC permits builds on login or compute nodes; request a compute allocation for resource-intensive builds. Check space before building.
 
-This keeps resource config separate from business logic, making both easier to modify.
+## Code and run identity
+
+- Follow [sync](../skills/sync/SKILL.md) before [submit](../skills/submit/SKILL.md). Record the remote code revision and run configuration actually used.
+- Prefer an immutable per-run checkout or snapshot. Do not update a shared checkout while queued or running jobs may still read it.
+- Respect `.gitignore`; stage explicit relevant paths. Do not force-add data, outputs, credentials, or caches.
+
+## Optional script structure
+
+Use a batch submission wrapper only when needed. Keep resource directives in `sbatch_*.sh`, with workload logic in a separate script when that improves reuse. A small experiment may use one clear script.

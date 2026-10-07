@@ -1,6 +1,6 @@
 {
   "name": "csc.fi-workflow",
-  "description": "CSC (Finland) SLURM cluster workflow for ML research: sync code, check jobs, manage experiment logs via Apptainer on Mahti/Puhti.",
+  "description": "CSC Roihu SLURM workflow for ML research: configure access and runtime architecture, sync code, submit and monitor jobs, and record verified results.",
   "author": {
     "name": "xxtars"
   }
