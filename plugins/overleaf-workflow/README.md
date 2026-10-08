@@ -15,7 +15,7 @@ Sync your Overleaf project via git, get academic writing conventions applied aut
 ## Install
 
 ```bash
-claude plugin install xxtars/claude-code-plugins/overleaf-workflow
+claude plugin install xxtars/agent-plugins/overleaf-workflow
 ```
 
 ## Quick Start

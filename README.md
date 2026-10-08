@@ -1,4 +1,4 @@
-# claude-code-plugins
+# agent-plugins
 
 Personal [Claude Code](https://claude.ai/code) plugin marketplace for ML research workflows.
 
