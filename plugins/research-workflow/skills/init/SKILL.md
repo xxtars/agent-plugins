@@ -37,4 +37,19 @@ Check generated relative links: do not copy plugin installation paths into the p
 
 If a cluster is relevant, reuse known settings from project files and session evidence. Mark missing settings explicitly; do not guess a SLURM account, remote path, GPU budget, or successful login. Local initialization can finish while remote access is unavailable. Use `/csc.fi-workflow:configure` when available and when configuration work is needed.
 
+When the project uses HPC, explicitly put the execution-location boundary in
+AGENTS.md: login nodes handle connection, lightweight file/Git management,
+script preparation, scheduler operations and bounded reading of existing logs;
+experimental attempts, CPU-only data scans/decoding, ML imports, processor/model
+checks, environment tests and builds run in allocated compute nodes. Preserve
+stricter user instructions. Distinguish this project/workflow policy from any
+lighter operations allowed by the provider. Read-only is not a compute exemption.
+
+For CSC GPU work, record short tests on `gputest` within the verified time limit
+and task budget; longer or production workloads use appropriate normal partitions.
+Standalone CPU work needs compatible CPU resources. Require job ID, partition and
+actual compute-host evidence, not just `SLURM_JOB_ID`. If resources/authorization
+are missing, document the pending test; do not try it on a login node. Put the
+rule in AGENTS.md and reuse the existing Cluster block for configuration values.
+
 Initialization alone does not start training, download model weights, create remote resources, or schedule a watcher. Finish by reporting files created/updated, the provisional research direction, and the next unresolved dependency. Use `/research-workflow:iterate` when evidence or an explicit user decision changes Story or Design.

@@ -22,7 +22,7 @@ Read [Roihu requirements](../../rules/roihu.md), project `AGENTS.md`, and the ex
    ```
    Retain stderr and the exit status. Preserve host-key verification. If host trust needs user action, report that instead of bypassing it.
 4. On authentication failure, inspect the selected host's effective `ssh -G` configuration, certificate validity with `ssh-keygen -L -f <certificate_path>`, and public-key fingerprint if needed. Do not dump private keys or unrelated SSH configuration. Check [CSC SSH guidance](https://docs.csc.fi/computing/connecting/ssh-keys/) and [service notices](https://research.csc.fi/service-break/) before recommending renewal. Distinguish expiry, rejection despite a valid certificate, network/DNS, sandbox restrictions, and login-shell errors. Renewal may require the user's browser/MFA interaction.
-5. Validate the known remote path's existence and write access, account membership, data availability, and target architecture. Use read-only checks first. A maintenance outage leaves these checks pending; it does not justify inventing a path or declaring migration complete. Do not run ML workloads on login nodes.
+5. Validate the known remote path's existence and write access, account membership, data availability, and target architecture. Use read-only checks first. A maintenance outage leaves these checks pending; it does not justify inventing a path or declaring migration complete. Follow the compute-location rule in the Roihu reference: bounded filesystem/configuration inspection is allowed on login nodes, but data scans, imports, processor/model tests and other experimental attempts require an authorized compute allocation. Read-only does not imply lightweight.
 
 ## Save one configuration block
 

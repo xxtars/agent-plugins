@@ -73,8 +73,10 @@ node's GPU driver or kernels.
   project-specific accounts and paths only in the project configuration.
 - Follow CSC's supported Apptainer build procedure on the target architecture.
   Preserve local `$TMPDIR`, check its capacity/quota, and use it for temporary
-  layers and sandboxes. Bound CPU/memory use; heavy compilation belongs in an
-  authorized compute allocation. Namespace restrictions alone do not imply
+  layers and sandboxes. Build, install and convert images in an authorized
+  compute allocation under the Roihu compute-location rule; record its job ID,
+  partition and execution host. Bound CPU/memory use. Namespace restrictions
+  alone do not imply
   container building is impossible; check CSC's documented fakeroot support.
 - Build to a distinct candidate filename, validate it, and publish the final
   filename atomically. Retain the previous working image and failed-build logs;
@@ -82,10 +84,13 @@ node's GPU driver or kernels.
 
 ## Validate the paths that matter
 
-First inspect versions, imports, dependency conflicts, CLI entry points, and
-model configuration and processor setup without running the model. Then use [submit](../submit/SKILL.md) within
-the existing authorization for a bounded GPU test: CUDA visibility and a small
-operation, actual model input/forward output, and the intended framework path.
+Inspect existing recipes and saved metadata with bounded reads first. Runtime
+inspection (including imports, dependency checks, CLI probes and processor
+construction) already needs a compute allocation; do not perform it on a login
+node before the GPU test. Use [submit](../submit/SKILL.md) within the existing
+authorization, with short GPU validation on `gputest` and longer work on a normal
+partition. Confirm actual compute-node execution, then check CUDA visibility, a
+small operation, actual model input/forward output, and the intended framework path.
 For multimodal models include a real image tensor. For training, check finite
 loss, finite nonzero gradients in intended trainable parameters, and one
 optimizer update. Verify label/slot mappings when custom decision heads are used.

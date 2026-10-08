@@ -26,7 +26,7 @@ Read [Roihu requirements](roihu.md) when targeting CSC. These conventions apply 
 - Match the image, binaries, Python wheels, and extensions to the target CPU architecture. Validate GPU passthrough and framework compatibility in a short compute job.
 - Use `apptainer exec --nv` when the chosen GPU image requires NVIDIA passthrough. Bind only required data, output, cache, and temporary paths; do not assume a home directory layout.
 - Keep CSC's provided `$TMPDIR` on local disk. Resolve it at runtime; do not replace it with a fixed `/dev/shm` or Lustre path. Put persistent model caches and results in verified project storage.
-- Build containers on a compatible architecture. CSC permits builds on login or compute nodes; request a compute allocation for resource-intensive builds. Check space before building.
+- Build containers on a compatible architecture inside an authorized compute allocation, following the strict compute-location default in the Roihu reference. Check space before building. Imports, processor tests and data scans also belong in compute job steps; do not put them in login-side submission wrappers. Record the actual execution host and compare it with the running job allocation before starting the workload; `SLURM_JOB_ID` alone is insufficient.
 
 ## Code and run identity
 
