@@ -34,7 +34,7 @@ not evidence that the same account, path, or runtime is valid on Roihu.
 
 ## Typical workflow
 
-1. Validate the connection/account and inspect existing metadata with bounded reads. Experimental attempts, data scans, imports, environment tests and builds require compute allocations; see the strict compute-location policy in the cluster requirements.
+1. Validate connection/account and assess preparation load. CSC permits bounded light checks and appropriate builds on login nodes; model experiments and substantial workloads use compute allocations. See the cluster requirements for limits and checksum examples.
 2. For a new ML environment, check the latest stable official vLLM image first and relevant training-framework images such as ms-swift; verify compatibility, then extend and test the chosen image. Explain and obtain approval before a from-scratch core stack build.
 3. Synchronize the intended code and verify its remote revision.
 4. Submit within the authorized resource budget and record the job identity.

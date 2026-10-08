@@ -37,19 +37,23 @@ Check generated relative links: do not copy plugin installation paths into the p
 
 If a cluster is relevant, reuse known settings from project files and session evidence. Mark missing settings explicitly; do not guess a SLURM account, remote path, GPU budget, or successful login. Local initialization can finish while remote access is unavailable. Use `/csc.fi-workflow:configure` when available and when configuration work is needed.
 
-When the project uses HPC, explicitly put the execution-location boundary in
-AGENTS.md: login nodes handle connection, lightweight file/Git management,
-script preparation, scheduler operations and bounded reading of existing logs;
-experimental attempts, CPU-only data scans/decoding, ML imports, processor/model
-checks, environment tests and builds run in allocated compute nodes. Preserve
-stricter user instructions. Distinguish this project/workflow policy from any
-lighter operations allowed by the provider. Read-only is not a compute exemption.
+When HPC is relevant, record a provider-based execution-location rule in AGENTS.md,
+with the user's current constraints. For CSC, login nodes allow editing/compilation,
+data movement, job management and light pre/post-processing: one core, minutes
+to finish and less than 1 GiB peak memory. Bounded streaming hashes, metadata or
+low-cost environment checks need not become GPU jobs; assess concurrency and I/O
+as well as memory. Model experiments and substantial/uncertain workloads use
+compute allocations. Verify the [current policy](https://docs.csc.fi/computing/usage-policy/#login-nodes);
+do not invent stricter bans or assume all read-only work is cheap.
 
-For CSC GPU work, record short tests on `gputest` within the verified time limit
-and task budget; longer or production workloads use appropriate normal partitions.
-Standalone CPU work needs compatible CPU resources. Require job ID, partition and
-actual compute-host evidence, not just `SLURM_JOB_ID`. If resources/authorization
-are missing, document the pending test; do not try it on a login node. Put the
-rule in AGENTS.md and reuse the existing Cluster block for configuration values.
+For CSC GPU work, short tests use `gputest` within current limits and task budget;
+longer/production work uses normal partitions, standalone CPU work compatible CPU
+resources. Record job ID/partition/actual host for compute jobs; light login checks
+need command/scope/outcome, not a job ID. Reuse Cluster for configuration values.
+
+When a project has multiple agents, distinguish default lead from current task
+implementer. Record scoped handoffs and review independence; do not encode an
+exclusive code owner unless the user requests it. Missing access, budget or a
+reviewer should block only dependent actions, not unrelated preparation.
 
 Initialization alone does not start training, download model weights, create remote resources, or schedule a watcher. Finish by reporting files created/updated, the provisional research direction, and the next unresolved dependency. Use `/research-workflow:iterate` when evidence or an explicit user decision changes Story or Design.

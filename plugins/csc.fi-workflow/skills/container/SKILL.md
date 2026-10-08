@@ -73,24 +73,25 @@ node's GPU driver or kernels.
   project-specific accounts and paths only in the project configuration.
 - Follow CSC's supported Apptainer build procedure on the target architecture.
   Preserve local `$TMPDIR`, check its capacity/quota, and use it for temporary
-  layers and sandboxes. Build, install and convert images in an authorized
-  compute allocation under the Roihu compute-location rule; record its job ID,
-  partition and execution host. Bound CPU/memory use. Namespace restrictions
-  alone do not imply
-  container building is impossible; check CSC's documented fakeroot support.
+  layers and sandboxes. CSC supports builds on login and compute nodes; apply
+  the Roihu load criteria. Small bounded installs/builds may use login nodes,
+  while large compression, heavy compilation or uncertain ML build load needs
+  an authorized compute allocation. Record host and command, plus job ID and
+  partition when allocated. Namespace restrictions alone do not imply building
+  is impossible; check CSC's documented fakeroot support.
 - Build to a distinct candidate filename, validate it, and publish the final
   filename atomically. Retain the previous working image and failed-build logs;
   do not promote a failed candidate as ready.
 
 ## Validate the paths that matter
 
-Inspect existing recipes and saved metadata with bounded reads first. Runtime
-inspection (including imports, dependency checks, CLI probes and processor
-construction) already needs a compute allocation; do not perform it on a login
-node before the GPU test. Use [submit](../submit/SKILL.md) within the existing
-authorization, with short GPU validation on `gputest` and longer work on a normal
-partition. Confirm actual compute-node execution, then check CUDA visibility, a
-small operation, actual model input/forward output, and the intended framework path.
+Inspect recipes and saved metadata first. Bounded import/dependency/CLI or
+processor-configuration checks may run on login nodes only if they fit CSC's
+light-work limits; avoid loading model weights or triggering heavy initialization.
+Use [submit](../submit/SKILL.md) within existing authorization for model/GPU
+validation: short tests on `gputest`, longer work on a normal partition. Confirm
+actual compute-node execution, then check CUDA visibility, a small operation,
+actual model input/forward output, and the intended framework path.
 For multimodal models include a real image tensor. For training, check finite
 loss, finite nonzero gradients in intended trainable parameters, and one
 optimizer update. Verify label/slot mappings when custom decision heads are used.
@@ -102,7 +103,7 @@ text generation and call it equivalent. Test data must be authorized; synthetic
 fixtures can check mechanics, but say that they do not measure task performance.
 
 Separate build, import, inference, and training status. Record the exact artifact,
-model revision, test code/config/seed, real job ID, outputs, and limitations in the
-project. If tests fail, diagnose before retrying; do not automatically enlarge
+model revision, test code/config/seed, execution host and real job ID when
+allocated, outputs, and limitations in the project. If tests fail, diagnose before retrying; do not automatically enlarge
 resources or resubmit. Report the working scope and any unresolved execution
 path instead of declaring the entire environment validated.

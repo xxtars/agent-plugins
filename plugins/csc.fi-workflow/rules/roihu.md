@@ -15,43 +15,44 @@ Official documentation checked **2026-10-07**. Recheck time-sensitive settings w
 
 ## Where commands may run
 
-Use a strict compute-allocation default for experiment work: login nodes are for
-bounded connection/identity checks, lightweight Git/file management, preparing
-batch scripts, scheduler submission/queries, and reading existing text logs or
-configuration. Do not run experimental attempts there, including CPU-only or
-read-only data scans, video/image decoding, processor construction, ML imports,
-model loading, inference, evaluation, training, or environment smoke tests.
-Build/install/convert containers and perform bulk extraction/checksums in an
-authorized compute allocation too. A small input or short duration is not an
-exception. Read-only permission describes mutations, not resource consumption.
+Follow CSC's [usage policy](https://docs.csc.fi/computing/usage-policy/#login-nodes),
+checked 2026-10-08: login nodes support editing/compilation, batch management,
+data movement and light pre/post-processing. CSC describes light processing as
+one core, minutes to finish and peak memory below 1 GiB. Assess the actual command
+and aggregate load; neither "read-only" nor "CPU-only" proves it is light.
 
-This is the workflow's conservative default, not a claim that CSC bans every
-light operation: CSC permits compilation, file transfers and light pre/post-
-processing on login nodes. Preserve a project's stricter policy instead of
-using those allowances as implicit permission for tests. [CSC job policy](https://docs.csc.fi/computing/running/getting-started/)
-
-- Use `gputest` for short GPU/ML validation within the authorized budget and
-  current partition limit (15 minutes checked 2026-10-08). Longer workloads and
-  production batches use a suitable normal partition. Do not split production
-  into repeated test jobs. CPU-only standalone preparation uses compatible CPU
-  allocations; do not reserve unused GPUs or assume an x86 CPU node can run an
-  ARM image. Resolve architecture/resource constraints before running.
-- Execute through a batch job or an allocated compute-node job step. Before the
-  workload, verify the job is running, its assigned nodes, and the actual process
-  host; save job ID, partition and hostname in the run/build record. `salloc`
-  alone, an inherited `SLURM_JOB_ID`, or a nested SSH session is not proof that
-  the current shell runs on an allocated node. Use the supported `srun` or
-  interactive-node entry procedure. [Interactive usage](https://docs.csc.fi/computing/running/interactive-usage/)
-- Waiting for allocation, missing budget, or a full queue never justifies a
-  login-node fallback. Preserve agent role limits: a read-only reviewer hands
-  compute work to the authorized executor; this rule grants no submission,
-  cancellation or budget-increase permission.
+- A bounded single-file streaming checksum, small metadata/configuration check,
+  low-cost import or small preprocessing check may run on a login node if it fits
+  those limits. Constrain threads/concurrency, set a reasonable timeout, and
+  watch memory and shared-storage I/O. A multi-GB file need not consume multi-GB
+  RAM. Do not require a GPU allocation just for hashing, or skip integrity checks.
+  Reuse a recorded digest only for an unchanged, reliably identified immutable
+  artifact; recalculate after changes or suspected corruption.
+- Model weight loading/inference/training, full evaluations, bulk video decoding,
+  whole-dataset scans, long/multicore/high-memory or sustained heavy I/O work
+  belongs on compute nodes. If a light check grows beyond its estimate, end that
+  check and move the work; do not silently leave it stressing a shared login node.
+- CSC permits container builds on matching-architecture login or compute nodes.
+  Use login nodes only for bounded, modest preparation/builds; large compression,
+  compilation and ML builds with uncertain resource demand use compute allocations.
+  See [build locations](https://docs.csc.fi/computing/containers/overview/#build-location).
+- Short GPU tests use `gputest` within the budget/current limit (15 minutes checked
+  2026-10-08); longer and production work uses normal partitions. Standalone CPU
+  work uses compatible CPU resources, not unused GPUs. Do not assume an x86 CPU
+  node can run an ARM image or split production into repeated test jobs.
+- For compute jobs, verify running allocation, assigned nodes and actual host;
+  save job ID, partition and hostname. `salloc` or `SLURM_JOB_ID` alone does not
+  prove the current process runs there. Permitted login-node checks need their
+  command/scope/outcome recorded, not an invented job ID.
+- Placement does not grant write, submission, cancellation or budget permissions.
+  Apply the current project roles/authorization separately. Heavy work cannot
+  fall back to login nodes because a queue is busy.
 
 ## Resources and runtime
 
 - Current GPU batch partitions include `gputest`, `gpumedium`, and `gpularge`. Verify current limits with official documentation and live `sinfo`/`scontrol` before selecting resources. A job's time and GPU count must fit the user's budget; do not assume interactive MIG resources are available. [Partitions](https://docs.csc.fi/computing/running/batch-job-partitions/)
 - The documented GPU request is `--gres=gpu:gh200:N`, where `N` is GPUs **per node**. CPU-accessible unified memory is not all GPU HBM. Check actual usable GPU memory when sizing a model. [Job scripts](https://docs.csc.fi/computing/running/creating-job-scripts-roihu/)
-- CSC provides local `$TMPDIR`; retain it and save outputs to persistent storage before job exit. Container build temporary files need local disk. Keep persistent caches separate and verify quotas. Build on the target architecture inside compute allocations, following the execution-location rule above. [Containers](https://docs.csc.fi/computing/containers/overview/)
+- CSC provides local `$TMPDIR`; retain it and save outputs to persistent storage before job exit. Container build temporary files need local disk. Keep persistent caches separate and verify quotas. Choose the build location on the target architecture using the load criteria above. [Containers](https://docs.csc.fi/computing/containers/overview/)
 
 For new ML environments, follow [container](../skills/container/SKILL.md) and its
 [compatibility checks](ml-containers.md). Check current official framework images
