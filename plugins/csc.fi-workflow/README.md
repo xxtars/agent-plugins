@@ -9,6 +9,7 @@ host agent.
 | Skill | Use it to |
 | --- | --- |
 | [configure](skills/configure/SKILL.md) | Check access, accounts, paths, runtime, and architecture |
+| [container](skills/container/SKILL.md) | Select current framework images, extend compatible ML environments, and validate inference/training |
 | [sync](skills/sync/SKILL.md) | Transfer scoped code changes and verify the remote revision |
 | [submit](skills/submit/SKILL.md) | Submit an authorized run and record its resources and identity |
 | [check-jobs](skills/check-jobs/SKILL.md) | Inspect current and recent project jobs |
@@ -34,10 +35,11 @@ not evidence that the same account, path, or runtime is valid on Roihu.
 ## Typical workflow
 
 1. Validate the connection, account, data, and runtime.
-2. Synchronize the intended code and verify its remote revision.
-3. Submit within the authorized resource budget and record the job identity.
-4. Check status, or request recurring monitoring when needed.
-5. Reconcile scheduler accounting, inspect outputs, and update the records.
+2. For a new ML environment, check the latest stable official vLLM image first and relevant training-framework images such as ms-swift; verify compatibility, then extend and test the chosen image. Explain and obtain approval before a from-scratch core stack build.
+3. Synchronize the intended code and verify its remote revision.
+4. Submit within the authorized resource budget and record the job identity.
+5. Check status, or request recurring monitoring when needed.
+6. Reconcile scheduler accounting, inspect outputs, and update the records.
 
 Queries stay scoped to the project's jobs. A failed SSH call is an unavailable
 observation. A job leaving the queue requires an accounting check. Scheduler

@@ -43,7 +43,7 @@ Update `CLAUDE.md` in place. Do not duplicate connection settings in `AGENTS.md`
 
 Omit optional unknown entries, or explicitly label them unresolved. Existing `Usage: ssh ...` configuration remains supported; avoid contradictory duplicate values.
 
-For container/model work, add verified dataset, container, persistent cache, output, and run-snapshot paths under `### CSC Paths`. Record image architecture and version/digest. Resolve `$TMPDIR` at runtime, not as a fixed per-project path. If local and cluster GitHub SSH aliases differ, preserve the existing `### GitHub SSH` entries and verify their repository identity.
+For ML container selection or builds, use [container](../container/SKILL.md) to check current upstream framework images and compatibility before choosing a base. For container/model work, add verified dataset, container, persistent cache, output, and run-snapshot paths under `### CSC Paths`. Record image architecture and version/digest. Resolve `$TMPDIR` at runtime, not as a fixed per-project path. If local and cluster GitHub SSH aliases differ, preserve the existing `### GitHub SSH` entries and verify their repository identity.
 
 Only add vLLM deployment settings when relevant to this project. Readiness checks need a deadline and a server-liveness check; a failed probe must not wait forever.
 

@@ -22,7 +22,7 @@ Read [Roihu requirements](roihu.md) when targeting CSC. These conventions apply 
 
 ## Runtime and storage
 
-- Prefer the project's tested container or CSC-supported environment. Apptainer is a useful default for reproducibility; a compatible module or virtual environment is also valid.
+- For existing runs, reuse the project's tested runtime. For a new or revised ML container, follow [container](../skills/container/SKILL.md): check current official framework images before selecting a base. A CSC-supported environment remains a candidate when it fits the workload. Apptainer is useful for reproducibility; a compatible module or virtual environment is also valid.
 - Match the image, binaries, Python wheels, and extensions to the target CPU architecture. Validate GPU passthrough and framework compatibility in a short compute job.
 - Use `apptainer exec --nv` when the chosen GPU image requires NVIDIA passthrough. Bind only required data, output, cache, and temporary paths; do not assume a home directory layout.
 - Keep CSC's provided `$TMPDIR` on local disk. Resolve it at runtime; do not replace it with a fixed `/dev/shm` or Lustre path. Put persistent model caches and results in verified project storage.

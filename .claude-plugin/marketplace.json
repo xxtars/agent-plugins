@@ -14,7 +14,7 @@
     },
     {
       "name": "csc.fi-workflow",
-      "description": "CSC Roihu SLURM workflow: architecture-aware configuration, code sync, job submission/monitoring, and verified experiment logs using research-workflow conventions.",
+      "description": "CSC Roihu ML workflow: architecture-aware configuration, current framework container selection and validation, code sync, job submission/monitoring, and verified experiment logs.",
       "source": "./plugins/csc.fi-workflow",
       "category": "development"
     },

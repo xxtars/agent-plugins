@@ -12,7 +12,7 @@ an agent that reads SKILL.md files.
 | Plugin | What it does |
 | --- | --- |
 | [research-workflow](plugins/research-workflow/) | Initializes research records and updates the plan from verified evidence |
-| [csc.fi-workflow](plugins/csc.fi-workflow/) | Configures CSC access, synchronizes code, manages SLURM jobs, and records results |
+| [csc.fi-workflow](plugins/csc.fi-workflow/) | Configures CSC access, prepares compatible ML containers, synchronizes code, manages SLURM jobs, and records results |
 | [overleaf-workflow](plugins/overleaf-workflow/) | Connects an Overleaf project, synchronizes manuscript changes, and adds references |
 | [web-paper-to-pdf](plugins/web-paper-to-pdf/) | Converts supported Distill-style web papers into unofficial archival PDFs |
 
@@ -32,6 +32,7 @@ can then select a skill or accept a request in plain language.
 Examples:
 
 - “Initialize research records from this project discussion.”
+- “Prepare an ARM container for this model using a compatible official vLLM or training-framework image.”
 - “Check the current jobs for this project.”
 - “Synchronize this manuscript with Overleaf.”
 - “Save this Distill-style paper as a PDF.”

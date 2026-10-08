@@ -19,6 +19,10 @@ Official documentation checked **2026-10-07**. Recheck time-sensitive settings w
 - The documented GPU request is `--gres=gpu:gh200:N`, where `N` is GPUs **per node**. CPU-accessible unified memory is not all GPU HBM. Check actual usable GPU memory when sizing a model. [Job scripts](https://docs.csc.fi/computing/running/creating-job-scripts-roihu/)
 - CSC provides local `$TMPDIR`; retain it and save outputs to persistent storage before job exit. Container build temporary files need local disk. Keep persistent caches separate and verify quotas. Build on the target architecture; use compute resources for heavy builds. [Containers](https://docs.csc.fi/computing/containers/overview/)
 
+For new ML environments, follow [container](../skills/container/SKILL.md) and its
+[compatibility checks](ml-containers.md). Check current official framework images
+before defaulting to a local module; preserve verified environments used by existing runs.
+
 ## Shared workflow contract
 
 - Read project `AGENTS.md`, then the `## Cluster` block in `CLAUDE.md`. That block remains the single source of connection settings. Do not execute unresolved placeholders.

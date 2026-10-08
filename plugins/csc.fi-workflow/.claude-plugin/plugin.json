@@ -1,6 +1,6 @@
 {
   "name": "csc.fi-workflow",
-  "description": "CSC Roihu SLURM workflow for ML research: configure access and runtime architecture, sync code, submit and monitor jobs, and record verified results.",
+  "description": "CSC Roihu ML workflow: configure access, select and extend compatible framework containers, sync code, submit and monitor jobs, and record verified results.",
   "author": {
     "name": "xxtars"
   }
