@@ -1,37 +1,70 @@
 # agent-plugins
 
-Personal [Claude Code](https://claude.ai/code) plugin marketplace for ML research workflows.
+Reusable plugins and skills for research agents: plan experiments, run cluster
+jobs, synchronize manuscripts, and archive web papers.
+
+The workflows are written as Markdown instructions and use the tools available
+in the host agent. They can be used with compatible plugin clients or adapted to
+an agent that reads SKILL.md files.
 
 ## Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| [research-workflow](plugins/research-workflow/) | Four-layer PLAN (Story / Design / Execution / Iteration), LOG/weekly/PITFALLS conventions, iterate skill |
-| [csc.fi-workflow](plugins/csc.fi-workflow/) | CSC Roihu workflow: architecture-aware setup, code sync, job submission/monitoring, and verified experiment logs |
-| [overleaf-workflow](plugins/overleaf-workflow/) | Overleaf paper writing: git sync, academic writing conventions, reference management |
-| [memory-workflow](plugins/memory-workflow/) | Session wrap-up: categorize decisions/dead-ends/open-items and persist to project files, user-gated |
-| [web-paper-to-pdf](plugins/web-paper-to-pdf/) | Convert Distill-style web papers (transformer-circuits.pub, distill.pub) into clean LaTeX-typeset PDFs using the public NeurIPS 2024 template. Output is labelled as **unofficial archival rendering**. |
+| Plugin | What it does |
+| --- | --- |
+| [research-workflow](plugins/research-workflow/) | Initializes research records and updates the plan from verified evidence |
+| [csc.fi-workflow](plugins/csc.fi-workflow/) | Configures CSC access, synchronizes code, manages SLURM jobs, and records results |
+| [overleaf-workflow](plugins/overleaf-workflow/) | Connects an Overleaf project, synchronizes manuscript changes, and adds references |
+| [web-paper-to-pdf](plugins/web-paper-to-pdf/) | Converts supported Distill-style web papers into unofficial archival PDFs |
 
-## Plugin relationships
+Install the plugins you need. There is no requirement to enable the full set.
 
-`research-workflow` defines the file conventions (`experiments/PLAN.md`, `LOG.md`, `weekly/`, `PITFALLS.md`). Three of the workflow plugins write into those files:
+## Getting started
 
-```
-research-workflow   (file conventions + iterate)
-      │
-      ├── csc.fi-workflow     (cluster ops: update-log writes to weekly/LOG)
-      ├── overleaf-workflow   (paper sync)
-      └── memory-workflow     (/wrap writes to weekly/PITFALLS/memory)
-```
+For a client that supports this marketplace format, add the repository
+[xxtars/agent-plugins](https://github.com/xxtars/agent-plugins) as a plugin source,
+then select a plugin. The marketplace identifier is xxtars-plugins.
 
-`web-paper-to-pdf` is independent — it has no dependency on the research-workflow file conventions.
+For direct skill use, start from the selected plugin's skills/<name>/SKILL.md.
+Keep the plugin's rules, templates, scripts, and assets alongside its skills;
+some instructions refer to these files by relative path. A compatible agent
+can then select a skill or accept a request in plain language.
 
-Parallel plugins — install what you need. The dependency is documentary, not packaged.
+Examples:
 
-## Disclaimer (web-paper-to-pdf)
+- “Initialize research records from this project discussion.”
+- “Check the current jobs for this project.”
+- “Synchronize this manuscript with Overleaf.”
+- “Save this Distill-style paper as a PDF.”
 
-PDFs produced by `web-paper-to-pdf` are **unofficial archival renderings**. They carry a footnote on the first page stating they are not produced or endorsed by the original authors, and they include the render date. Intended for personal reading / archival only — respect the copyright and license of the source pages. Not affiliated with Anthropic or any other organisation whose papers can be rendered.
+The .claude-plugin manifests are a packaging adapter retained for compatible
+clients. Installation, command syntax, credentials, and scheduling are supplied
+by the host. The workflows do not assume one agent application or automatic
+loading of every supporting file.
+
+## How the workflows fit together
+
+research-workflow defines PLAN.md, LOG.md, weekly records, and PITFALLS.md.
+The cluster plugin uses these conventions to record jobs and verified outputs.
+The Overleaf plugin manages a separate manuscript repository; it does not
+synchronize the paper's claims with the research plan automatically.
+The web-paper converter operates independently.
+
+Project-specific settings belong in the project using the plugin. Keep access
+tokens, account identifiers, local paths, research data, and personal writing
+preferences out of this reusable repository.
+
+## Requirements
+
+Most skills need file access and Git. Cluster operations additionally need a
+working SSH connection and access to the target SLURM environment. Overleaf
+operations need authorized Git access to the manuscript. The PDF converter needs
+Python dependencies, a browser, and a LaTeX toolchain. See each plugin's README
+for its configuration and limits.
 
 ## License
 
-MIT for plugin code in this repo. Third-party files (e.g. `neurips_2024.sty`, the public NeurIPS template by Roman Garnett and contributors) carry their own terms.
+Repository code and documentation are under the [MIT License](LICENSE).
+The bundled NeurIPS style file retains its original third-party attribution and
+applicable terms. Generated PDFs are unofficial archival copies, not publications
+or renderings endorsed by the source authors. Respect the source material's
+copyright and license.

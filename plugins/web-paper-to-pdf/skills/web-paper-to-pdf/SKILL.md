@@ -1,6 +1,6 @@
 ---
 name: web-paper-to-pdf
-description: Convert a Distill-style web paper (e.g. transformer-circuits.pub, distill.pub, alignment.anthropic.com) into a clean academic-style PDF using LaTeX. Use when the user wants to save a paper webpage as PDF and the browser-print result is bad (overlapping sidebars, blank pages, oversized figures, layout issues). Triggers: "save this paper as PDF", "把这个论文保存成PDF", "转成PDF", "PDF效果不好", "用latex渲染", or any URL pointing at transformer-circuits.pub / distill.pub / alignment.anthropic.com that the user asks to download.
+description: Convert a supported Distill-style web paper into an unofficial archival PDF using LaTeX. Use when the user asks to save a paper from transformer-circuits.pub, distill.pub, or alignment.anthropic.com as a PDF, especially when browser printing gives a poor layout.
 ---
 
 # Render a Distill-style web paper as a LaTeX PDF
@@ -22,7 +22,7 @@ For non-Distill pages, fall back to `chrome --headless --print-to-pdf`.
 
 ## Toolchain
 
-Required (all already installed on this machine):
+Check that the following dependencies are available before starting:
 - Python 3 with `beautifulsoup4`, `lxml`, `requests`
 - `pdflatex` (TeX Live; the NeurIPS template is tested against pdflatex)
 - `bibtex`
@@ -45,7 +45,7 @@ The pipeline:
 4. **Copy** — `neurips_2024.sty` is copied into the work dir.
 5. **Compile** — pdflatex → bibtex → pdflatex → pdflatex.
 
-The script `convert.py` and the style file `neurips_2024.sty` are shipped alongside this `SKILL.md` — resolve them relative to this skill's directory at invocation time. Locate the skill dir by checking `$CLAUDE_PLUGIN_ROOT/skills/web-paper-to-pdf/` (when installed as a plugin) or `~/.claude/skills/web-paper-to-pdf/` (when copied directly to user skills).
+The script `convert.py` and the style file `neurips_2024.sty` are shipped alongside this `SKILL.md` — resolve them relative to this skill's directory at invocation time. Use the actual path of the loaded skill. Do not assume a particular client installation directory.
 
 ## How to invoke
 
@@ -62,7 +62,7 @@ pdflatex -interaction=nonstopmode paper.tex
 cp paper.pdf <destination>.pdf
 ```
 
-Default `--out` is `/tmp/<slug-from-url>`. The work dir is reusable — the DOM dump and image downloads are cached.
+Pass an explicit `--out` directory for each paper; the script otherwise reuses its fixed temporary default. The work dir is reusable — the DOM dump and image downloads are cached.
 
 ## Failure modes and what to do
 

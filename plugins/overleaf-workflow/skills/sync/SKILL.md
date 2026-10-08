@@ -9,7 +9,7 @@ Push local changes to Overleaf or pull remote changes.
 
 ## Finding the Overleaf directory
 
-Look for the Overleaf path in the project's `CLAUDE.md` (under "Overleaf" section). Typically `overleaf/<project_id>/`.
+Read the existing Overleaf section in the project's `AGENTS.md` or `CLAUDE.md`. Reuse that configuration without duplicating it. The path is typically `overleaf/<project_id>/`.
 
 ## Push (local → Overleaf)
 

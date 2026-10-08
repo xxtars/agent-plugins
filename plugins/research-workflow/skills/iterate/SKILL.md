@@ -89,4 +89,4 @@ List what was written to PLAN.md. Suggest:
 - Run experiments (that's the cluster plugin)
 - Verify numbers from output files (that's `update-log` in the cluster plugin)
 - Sync paper with PLAN (that's for overleaf-workflow, future `sync-narrative` skill)
-- Capture session-level memory (that's memory-workflow's `/wrap`)
+- Manage agent memory or automatically summarize a session

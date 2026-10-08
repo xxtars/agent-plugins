@@ -1,56 +1,57 @@
 # research-workflow
 
-Research workflow scaffolding and feedback-loop management for ML research projects. Defines the file conventions (PLAN / LOG / weekly / PITFALLS) that other plugins (`csc.fi-workflow`, `overleaf-workflow`, `memory-workflow`) write into.
-
-## Why
-
-A research project isn't a pipeline, it's a loop: **Story → Design → Execution → (results force updates) → Story/Design**. Most experiment-tracking tools only cover Execution. This plugin makes the Story and Iteration layers explicit, with an audit trail.
+Keep a research question, its experimental design, and the evidence from runs in
+connected project files. Initialize the records from an existing discussion,
+then revise the plan when verified results or an explicit direction change call
+for it.
 
 ## Skills
 
-| Skill | Command | When |
-|-------|---------|------|
-| `init` | `/research-workflow:init` | Initialize AGENTS / PLAN / LOG / PITFALLS / weekly from existing context, or complete missing files safely |
-| `iterate` | `/research-workflow:iterate` | After a weekly log shows new verified results, reconcile with PLAN's Story and Design |
+| Skill | Use it to |
+| --- | --- |
+| [init](skills/init/SKILL.md) | Create missing research records or complete an existing setup while preserving its history |
+| [iterate](skills/iterate/SKILL.md) | Reconcile the plan with verified results, checked sources, or a requested change of direction |
 
-## File structure
+## Project files
 
-```
-AGENTS.md             ← project entry point, instructions, and research links
-CLAUDE.md             ← optional AGENTS import; existing Cluster configuration stays here
-experiments/
-├── PLAN.md            ← 4 layers: Story / Design / Execution pointer / Iteration Log
-├── LOG.md             ← Stage status + weekly index
-├── weekly/
-│   └── week-YYYY-MM-DD.md   ← Job history + verified results + notes
-└── PITFALLS.md        ← Operational lessons (symptom / root cause / fix / date)
-```
+    AGENTS.md
+    experiments/
+    ├── PLAN.md
+    ├── LOG.md
+    ├── weekly/
+    │   └── week-YYYY-MM-DD.md
+    └── PITFALLS.md
 
-Initialization can use an existing discussion. It distinguishes user decisions, verified source facts, proposed methods, and open questions. It preserves existing history, leaves results empty until real outputs exist, and can finish locally while cluster setup is incomplete. Add `experiments/SOURCES.md` when external sources materially inform the plan. Run records link exact code/model/data versions, configuration, and output evidence.
+AGENTS.md is the project entry point. PLAN.md contains four layers:
 
-See [`rules/research-files.md`](rules/research-files.md) for the full conventions and [`rules/iteration-workflow.md`](rules/iteration-workflow.md) for the feedback-loop protocol.
+| Layer | Purpose |
+| --- | --- |
+| Story | The question, claim, significance, and current interpretation |
+| Design | Methods, comparisons, metrics, and planned experiments |
+| Execution status | Pointers to operational records |
+| Iteration log | Dated changes to the plan and the evidence for them |
 
-## The four PLAN.md layers
+LOG.md holds stage status and a weekly index. Weekly records separate job
+history, verified results, and notes. PITFALLS.md records operational problems
+and their fixes. An optional SOURCES.md keeps external evidence that materially
+informs the plan.
 
-| # | Layer | Purpose | Paper alignment |
-|---|-------|---------|-----------------|
-| L1 | Story | Core claim, why it matters, current stance | abstract + introduction |
-| L2 | Design | Pipeline, experiment matrix, metrics, baselines | experiments.tex + appendix |
-| L3 | Execution Status | Pointer to LOG.md and weekly logs (no numbers here) | — |
-| L4 | Iteration Log | Append-only audit trail of Story/Design changes | — |
+## Typical use
 
-## Relationship to other plugins
+1. Ask the agent to initialize the project from the available discussion and files.
+2. Record jobs and verify their output before adding performance claims.
+3. Ask it to reconcile PLAN.md when results or the research direction change.
 
-```
-research-workflow  ← defines PLAN / LOG / weekly / PITFALLS conventions
-      │
-      ├── csc.fi-workflow      writes weekly via update-log
-      ├── overleaf-workflow    paper sync (future: Story ↔ abstract sync)
-      └── memory-workflow      /wrap writes into these files
-```
+Proposed methods remain provisional until adopted. A user decision establishes
+intent; it does not establish an experimental result. Existing records are
+preserved when initialization is run again.
 
-These plugins are **parallel, not nested**. Install what you need. The dependency is conceptual (their rules reference `research-workflow`), not packaged.
+## Related workflows
 
-## Install
+csc.fi-workflow uses these conventions for execution records. overleaf-workflow
+manages manuscript files separately. Updating PLAN.md does not run experiments,
+change a manuscript, or populate an agent's persistent memory.
 
-Add to your Claude Code plugins, enable `research-workflow@xxtars-plugins`.
+See [file conventions](rules/research-files.md) and
+[iteration guidance](rules/iteration-workflow.md) for the detailed rules.
+Installation options are described in the [repository README](../../README.md).
