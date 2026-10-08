@@ -21,6 +21,12 @@ platforms. Inspect the selected image configuration for CUDA/build metadata, the
 inspect installed package metadata in the container. Official release notes or
 Dockerfiles can narrow candidates but do not replace testing the delivered image.
 
+Check environment isolation before trusting package inventories. Apptainer
+`--cleanenv` does not disable Python user-site packages exposed by a home bind.
+Use `PYTHONNOUSERSITE=1` and a controlled `PYTHONPATH`, or an appropriate home
+isolation option, consistently for base inspection, extension checks, and tests.
+Record package locations when an unexpected version or warning appears.
+
 For added dependencies, inspect a resolver dry run with appropriate constraints
 when supported. Compare it to the base inventory, and check dependency consistency
 after installation. Record inherited conflicts separately from new ones and assess
